@@ -277,3 +277,14 @@ app_license = "mit"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+doc_events = {
+    "GulfCare Site Visit": {
+        "after_insert": "gulfcare_custom.events.site_visit_after_insert"
+    }
+}
+
+scheduler_events = {
+    "daily": [
+        "gulfcare_custom.tasks.daily"
+    ]
+}
