@@ -13,7 +13,7 @@
   "start_date",
   "end_date",
   "workers_required",
-  "select_vnwu",
+  "status",
   "notes"
  ],
  "fields": [
@@ -60,19 +60,21 @@
    "reqd": 1
   },
   {
-   "fieldname": "select_vnwu",
-   "fieldtype": "Select"
-  },
-  {
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "label": "Note"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nOpen\nPartially Assigned\nFully Assigned\nCancelled\nCompleted"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-20 13:02:41.619746",
+ "modified": "2026-10-20 13:40:50.728537",
  "modified_by": "Administrator",
  "module": "Manpower Allocation",
  "name": "Manpower Request",
