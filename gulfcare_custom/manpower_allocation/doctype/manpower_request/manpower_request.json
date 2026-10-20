@@ -14,7 +14,8 @@
   "end_date",
   "workers_required",
   "status",
-  "notes"
+  "notes",
+  "opportunity"
  ],
  "fields": [
   {
@@ -69,12 +70,18 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "Draft\nOpen\nPartially Assigned\nFully Assigned\nCancelled\nCompleted"
+  },
+  {
+   "fieldname": "opportunity",
+   "fieldtype": "Link",
+   "label": "Opportunity",
+   "options": "Opportunity"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-20 13:40:50.728537",
+ "modified": "2026-10-20 16:01:53.917247",
  "modified_by": "Administrator",
  "module": "Manpower Allocation",
  "name": "Manpower Request",
