@@ -31,10 +31,41 @@ class ManpowerRequest(Document):
             frappe.throw("Workers Required must be greater than zero.")
 
     def validate_opportunity(self):
-        if self.opportunity and not frappe.db.exists(
-            "Opportunity", self.opportunity
-        ):
+        if not self.opportunity:
+            return
+
+        opportunity = frappe.db.get_value(
+            "Opportunity",
+            self.opportunity,
+            ["opportunity_from", "party_name"],
+            as_dict=True,
+        )
+
+        if not opportunity:
             frappe.throw("The selected Opportunity does not exist.")
+
+        if opportunity.opportunity_from == "Customer":
+            if opportunity.party_name != self.customer:
+                frappe.throw(
+                    "The selected Opportunity does not belong to this Customer."
+                )
+
+        elif opportunity.opportunity_from == "Lead":
+            customer_lead = frappe.db.get_value(
+                "Customer",
+                self.customer,
+                "lead_name",
+            )
+
+            if opportunity.party_name != customer_lead:
+                frappe.throw(
+                    "The selected Opportunity is not associated with this Customer."
+                )
+
+        else:
+            frappe.throw(
+                "Select an Opportunity linked to this Customer or its originating Lead."
+            )
 
     def validate_status_transition(self):
         old_doc = self.get_doc_before_save()
