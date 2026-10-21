@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "autoincrement",
+ "creation": "2026-10-21 10:45:34.515578",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "manpower_request",
+  "employee",
+  "start_date",
+  "end_date",
+  "status",
+  "notes",
+  "overstaffing_approved",
+  "approval_reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "manpower_request",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Manpower Request",
+   "options": "Manpower Request",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "End Date",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nActive\nCancelled\nCompleted",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "default": "0",
+   "fieldname": "overstaffing_approved",
+   "fieldtype": "Check",
+   "label": "Overstaffing Approved"
+  },
+  {
+   "fieldname": "approval_reason",
+   "fieldtype": "Small Text",
+   "label": "Approval Reason"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-21 10:57:19.085243",
+ "modified_by": "Administrator",
+ "module": "Manpower Allocation",
+ "name": "Manpower Assignment",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

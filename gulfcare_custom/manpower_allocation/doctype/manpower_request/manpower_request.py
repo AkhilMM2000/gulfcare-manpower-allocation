@@ -95,7 +95,7 @@ class ManpowerRequest(Document):
             )
 
         # Cancellation requires System Manager permission.
-        if new_status == "Cancelled" and not frappe.has_role("System Manager"):
+        if new_status == "Cancelled" and "System Manager" not in frappe.get_roles(frappe.session.user):
             frappe.throw(
                 "Only an authorized manager can cancel a Manpower Request."
             )
