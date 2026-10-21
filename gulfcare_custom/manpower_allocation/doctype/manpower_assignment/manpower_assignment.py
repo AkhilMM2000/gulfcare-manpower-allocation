@@ -46,15 +46,9 @@ class ManpowerAssignment(Document):
                 f"{request.start_date} to {request.end_date}."
             )
 
-    def validate_status_transition(self):
-        """Allow only explicitly permitted status transitions."""
 
-        allowed_transitions = {
-            "Draft": ["Active", "Cancelled"],
-            "Active": ["Cancelled", "Completed"],
-            "Cancelled": [],
-            "Completed": [],
-        }
+    def validate_status_transition(self):
+        """Allow only explicitly permitted assignment status transitions."""
 
         old_doc = self.get_doc_before_save()
 
@@ -72,13 +66,19 @@ class ManpowerAssignment(Document):
         if old_status == new_status:
             return
 
-        allowed = allowed_transitions.get(old_status, [])
+        allowed_transitions = {
+            "Draft": ["Active", "Cancelled"],
+            "Active": ["Cancelled", "Completed"],
+            "Cancelled": [],
+            "Completed": [],
+        }
 
-        if new_status not in allowed:
+        if new_status not in allowed_transitions.get(old_status, []):
             frappe.throw(
-                f"Status transition from {old_status} to {new_status} "
-                "is not allowed."
+                f"Assignment status transition from {old_status} "
+                f"to {new_status} is not allowed."
             )
+
 
     def validate_overstaffing_approval(self):
         """Restrict overstaffing approval to authorized managers."""
@@ -196,3 +196,13 @@ class ManpowerAssignment(Document):
                     )
 
             current_date = frappe.utils.add_days(current_date, 1)
+
+    def on_update(self):
+        """Recalculate the linked request after an assignment is saved."""
+
+        request = frappe.get_doc(
+            "Manpower Request",
+            self.manpower_request,
+        )
+
+        request.update_staffing_status()
