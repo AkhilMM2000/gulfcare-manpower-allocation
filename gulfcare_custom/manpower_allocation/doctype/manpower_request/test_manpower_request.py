@@ -3,6 +3,8 @@ import frappe
 from unittest.mock import patch
 from frappe.tests import IntegrationTestCase
 
+IGNORE_TEST_RECORD_DEPENDENCIES = ["Customer", "Opportunity"]
+
 
 class IntegrationTestManpowerRequest(IntegrationTestCase):
 
@@ -51,6 +53,12 @@ class IntegrationTestManpowerRequest(IntegrationTestCase):
 
         with self.assertRaises(frappe.ValidationError):
             doc.validate_workers_required()
+
+    def test_positive_workers_is_allowed(self):
+        doc = self.make_request()
+        doc.workers_required = 5
+
+        doc.validate_workers_required()
 
     def test_nonexistent_opportunity_is_rejected(self):
         doc = self.make_request()
