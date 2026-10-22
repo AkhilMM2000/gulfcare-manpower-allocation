@@ -8,8 +8,13 @@ class ManpowerAssignment(Document):
 
     def validate(self):
         self.validate_dates()
+        self.validate_employee_eligibility()
+        self.validate_employee_leave()
         self.validate_status_transition()
         self.validate_overstaffing_approval()
+
+        self.lock_assignment_resources()
+
         self.validate_employee_conflicts()
         self.validate_overstaffing()
 
@@ -46,6 +51,86 @@ class ManpowerAssignment(Document):
                 f"{request.start_date} to {request.end_date}."
             )
 
+
+    def validate_employee_eligibility(self):
+        """Ensure the employee is eligible for the assignment period."""
+
+        employee = frappe.get_doc("Employee", self.employee)
+
+        if employee.status != "Active":
+            frappe.throw(
+                f"Employee {self.employee} is {employee.status}. "
+                "Only Active employees can be assigned."
+            )
+
+        start_date = getdate(self.start_date)
+        end_date = getdate(self.end_date)
+
+        if employee.date_of_joining:
+            joining_date = getdate(employee.date_of_joining)
+
+            if start_date < joining_date:
+                frappe.throw(
+                    f"Employee {self.employee} joined on "
+                    f"{joining_date} and cannot be assigned before "
+                    "their joining date."
+                )
+
+        if employee.relieving_date:
+            relieving_date = getdate(employee.relieving_date)
+
+            if end_date > relieving_date:
+                frappe.throw(
+                    f"Employee {self.employee} has a relieving date of "
+                    f"{relieving_date}. The assignment cannot extend "
+                    "beyond that date."
+                )
+
+        if employee.contract_end_date:
+            contract_end_date = getdate(employee.contract_end_date)
+
+            if end_date > contract_end_date:
+                frappe.throw(
+                    f"Employee {self.employee} has a contract ending on "
+                    f"{contract_end_date}. The assignment cannot extend "
+                    "beyond that date."
+                )
+
+
+    def validate_employee_leave(self):
+        """Prevent assignments that overlap approved employee leave."""
+
+        if self.status != "Active":
+            return
+
+        start_date = getdate(self.start_date)
+        end_date = getdate(self.end_date)
+
+        leave_applications = frappe.get_all(
+            "Leave Application",
+            filters={
+                "employee": self.employee,
+                "status": "Approved",
+                "from_date": ["<=", end_date],
+                "to_date": [">=", start_date],
+            },
+            fields=[
+                "name",
+                "from_date",
+                "to_date",
+                "leave_type",
+            ],
+        )
+
+        if leave_applications:
+            leave = leave_applications[0]
+
+            frappe.throw(
+                f"Employee {self.employee} has approved leave "
+                f"({leave.leave_type}) from {leave.from_date} "
+                f"to {leave.to_date}. The assignment overlaps "
+                "this leave and cannot be activated."
+            )
 
     def validate_status_transition(self):
         """Allow only explicitly permitted assignment status transitions."""
@@ -104,20 +189,18 @@ class ManpowerAssignment(Document):
         start_date = getdate(self.start_date)
         end_date = getdate(self.end_date)
 
-        assignments = frappe.get_all(
-            "Manpower Assignment",
-            filters={
-                "employee": self.employee,
-                "status": "Active",
-                "start_date": ["<=", end_date],
-                "end_date": [">=", start_date],
-            },
-            fields=[
-                "name",
-                "manpower_request",
-                "start_date",
-                "end_date",
-            ],
+        assignments = frappe.db.sql(
+            """
+            SELECT name, manpower_request, start_date, end_date
+            FROM `tabManpower Assignment`
+            WHERE employee = %s
+              AND status = 'Active'
+              AND start_date <= %s
+              AND end_date >= %s
+            FOR UPDATE
+            """,
+            (self.employee, end_date, start_date),
+            as_dict=True,
         )
 
         for assignment in assignments:
@@ -154,15 +237,18 @@ class ManpowerAssignment(Document):
         start_date = getdate(self.start_date)
         end_date = getdate(self.end_date)
 
-        existing_assignments = frappe.get_all(
-            "Manpower Assignment",
-            filters={
-                "manpower_request": self.manpower_request,
-                "status": "Active",
-                "start_date": ["<=", end_date],
-                "end_date": [">=", start_date],
-            },
-            fields=["name", "start_date", "end_date"],
+        existing_assignments = frappe.db.sql(
+            """
+            SELECT name, start_date, end_date
+            FROM `tabManpower Assignment`
+            WHERE manpower_request = %s
+              AND status = 'Active'
+              AND start_date <= %s
+              AND end_date >= %s
+            FOR UPDATE
+            """,
+            (self.manpower_request, end_date, start_date),
+            as_dict=True,
         )
 
         # Do not count the current document twice during an update.
@@ -206,3 +292,31 @@ class ManpowerAssignment(Document):
         )
 
         request.update_staffing_status()
+
+    def lock_assignment_resources(self):
+        """Lock the employee and request rows during assignment validation."""
+
+        if self.status != "Active":
+            return
+
+        # Always lock Employee first.
+        frappe.db.sql(
+            """
+            SELECT name
+            FROM `tabEmployee`
+            WHERE name = %s
+            FOR UPDATE
+            """,
+            self.employee,
+        )
+
+        # Then lock the Manpower Request.
+        frappe.db.sql(
+            """
+            SELECT name
+            FROM `tabManpower Request`
+            WHERE name = %s
+            FOR UPDATE
+            """,
+            self.manpower_request,
+        )
