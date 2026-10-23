@@ -320,3 +320,63 @@ class ManpowerAssignment(Document):
             """,
             self.manpower_request,
         )
+
+    @frappe.whitelist()
+    def replace_assignment(self, replacement_employee, replacement_reason):
+        """Replace an active assignment with another employee."""
+
+        self.check_permission("write")
+
+        if self.status != "Active":
+            frappe.throw("Only Active assignments can be replaced.")
+
+        if self.replaced_by:
+            frappe.throw("This assignment has already been replaced.")
+
+        if not replacement_employee:
+            frappe.throw("Replacement Employee is required.")
+
+        if replacement_employee == self.employee:
+            frappe.throw(
+                "The replacement employee must be different "
+                "from the original employee."
+            )
+
+        if not replacement_reason or not replacement_reason.strip():
+            frappe.throw("Replacement Reason is required.")
+
+        savepoint = "manpower_assignment_replacement"
+        frappe.db.savepoint(savepoint)
+
+        try:
+            # Create the replacement first as a Draft.
+            replacement = frappe.get_doc({
+                "doctype": "Manpower Assignment",
+                "manpower_request": self.manpower_request,
+                "employee": replacement_employee,
+                "start_date": self.start_date,
+                "end_date": self.end_date,
+                "status": "Draft",
+                "replaces_assignment": self.name,
+                "replacement_reason": replacement_reason.strip(),
+            })
+
+            replacement.insert()
+
+            # Preserve the original record and link the replacement.
+            self.reload()
+            self.status = "Cancelled"
+            self.replaced_by = replacement.name
+            self.replacement_reason = replacement_reason.strip()
+            self.save()
+
+            # Activate the replacement only after the old assignment
+            # has been cancelled, so capacity checks see the right count.
+            replacement.status = "Active"
+            replacement.save()
+
+            return replacement.name
+
+        except Exception:
+            frappe.db.rollback(save_point=savepoint)
+            raise

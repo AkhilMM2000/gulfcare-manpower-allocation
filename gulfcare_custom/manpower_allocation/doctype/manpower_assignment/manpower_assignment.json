@@ -14,7 +14,10 @@
   "status",
   "notes",
   "overstaffing_approved",
-  "approval_reason"
+  "approval_reason",
+  "replacement_reason",
+  "replaced_by",
+  "replaces_assignment"
  ],
  "fields": [
   {
@@ -70,12 +73,32 @@
    "fieldname": "approval_reason",
    "fieldtype": "Small Text",
    "label": "Approval Reason"
+  },
+  {
+   "fieldname": "replacement_reason",
+   "fieldtype": "Small Text",
+   "label": "Replacement Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "replaced_by",
+   "fieldtype": "Link",
+   "label": "Replaced By",
+   "options": "Manpower Assignment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "replaces_assignment",
+   "fieldtype": "Link",
+   "label": "Replaces Assignment",
+   "options": "Manpower Assignment",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-21 10:57:19.085243",
+ "modified": "2026-10-23 14:46:13.026647",
  "modified_by": "Administrator",
  "module": "Manpower Allocation",
  "name": "Manpower Assignment",
