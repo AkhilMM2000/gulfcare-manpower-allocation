@@ -1,9 +1,9 @@
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestManpowerAssignment(FrappeTestCase):
+class TestManpowerAssignment(IntegrationTestCase):
 
     def test_rejects_overlapping_active_assignment_for_same_employee(self):
         # Reuse existing records to avoid unnecessary test fixtures.
