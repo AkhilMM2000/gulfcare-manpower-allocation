@@ -81,7 +81,9 @@ The custom application extends the existing Frappe ecosystem rather than rebuild
 
 The main custom application is located at:
 
+## Project Structure
 
+```text
 gulfcare_custom/
 ├── gulfcare_custom/
 │   └── manpower_allocation/
@@ -91,6 +93,7 @@ gulfcare_custom/
 ├── hooks.py
 ├── modules.txt
 └── README.md
+```
 
 
 The repository may contain additional Frappe configuration, DocTypes, tests, and other application files.
